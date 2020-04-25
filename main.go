@@ -4,12 +4,15 @@ import (
 	"golang.org/x/net/html"
 	"io"
 	"net/http"
+	"net"
+	"crypto/tls"
 	"fmt"
 	"flag"
 	"strings"
 	"os"
 	"bufio"
 	"sync"
+	"time"
 )
 
 var wg sync.WaitGroup
@@ -23,13 +26,43 @@ func main() {
 
 	urls := make(chan string)
 
+	var tr = &http.Transport{
+		MaxIdleConns:      30,
+		IdleConnTimeout:   time.Second,
+		DisableKeepAlives: true,
+		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+		DialContext: (&net.Dialer{
+			Timeout:   time.Second,
+			KeepAlive: time.Second,
+		}).DialContext,
+	}
+
+	re := func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	client := &http.Client{
+		Transport:     tr,
+		CheckRedirect: re,
+		Timeout:       time.Second,
+	}
+
 	for i := 0; i < concurrency; i++ {
 	    wg.Add(1)
 
 	    go func() {
 	      for url := range urls {
 
-	        resp, err := http.Get(url)
+	      	req, err := http.NewRequest("GET", url, nil)
+	      	if err != nil {
+	      		continue
+	      	}
+
+	      	req.Header.Add("Connection", "close")
+	      	req.Close = true
+
+	      	resp, err := client.Do(req)
+
 	        if err != nil {
 	        	continue
 	        }
@@ -86,14 +119,14 @@ func traverse(n *html.Node) (string, bool) {
 			return result, ok
 		}
 	}
-
 	return "", false
 }
 
 func GetHtmlTitle(r io.Reader) (string, bool) {
 	doc, err := html.Parse(r)
 	if err != nil {
-		panic("Failed to parse html")
+		return "", false
+		// panic("Failed to parse html")
 	}
 
 	return traverse(doc)
