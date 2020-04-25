@@ -14,6 +14,9 @@ or
 
 `$ gotit sub.example.com`
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/J85aIYqUzqlYGV0fPNyPSa62p.svg)](https://asciinema.org/a/J85aIYqUzqlYGV0fPNyPSa62p)
 
 ## Install
 
