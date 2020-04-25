@@ -1,7 +1,6 @@
 package main
 
 import (
-	"golang.org/x/net/html"
 	"io"
 	"net/http"
 	"net"
@@ -13,6 +12,7 @@ import (
 	"bufio"
 	"sync"
 	"time"
+	"github.com/PuerkitoBio/goquery"
 )
 
 var wg sync.WaitGroup
@@ -68,11 +68,18 @@ func main() {
 	        }
 	        defer resp.Body.Close()
 
-	        if title, ok := GetHtmlTitle(resp.Body); ok {
-	        	fmt.Printf("%s : %s\n", url, title)
+	        doc, err := goquery.NewDocumentFromReader(resp.Body)
+	        if err != nil {
+	        	continue
+	        }
+
+	        title := doc.Find("title").Text()
+	        if title != "" {
+						fmt.Printf("%s : %s\n", url, title)
 	        } else {
 	        	fmt.Printf("%s : No title\n", url)
-	        }
+	      	}
+
 	      }
 	      wg.Done()
 	    }()
@@ -102,32 +109,4 @@ func main() {
 	close(urls)
 	wg.Wait()
 
-}
-
-func isTitleElement(n *html.Node) bool {
-	return n.Type == html.ElementNode && n.Data == "title"
-}
-
-func traverse(n *html.Node) (string, bool) {
-	if isTitleElement(n) {
-		return n.FirstChild.Data, true
-	}
-
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		result, ok := traverse(c)
-		if ok {
-			return result, ok
-		}
-	}
-	return "", false
-}
-
-func GetHtmlTitle(r io.Reader) (string, bool) {
-	doc, err := html.Parse(r)
-	if err != nil {
-		return "", false
-		// panic("Failed to parse html")
-	}
-
-	return traverse(doc)
 }
