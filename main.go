@@ -22,6 +22,9 @@ func main() {
 	var concurrency int
 	flag.IntVar(&concurrency, "c", 20, "set the concurrency level")
 
+	var ignoreblanks bool
+	flag.BoolVar(&ignoreblanks, "b", false, "ignore sites which don't return a title")
+
 	flag.Parse()
 
 	urls := make(chan string)
@@ -77,7 +80,9 @@ func main() {
 	        if title != "" {
 						fmt.Printf("%s : %s\n", url, title)
 	        } else {
-	        	fmt.Printf("%s : No title\n", url)
+	        	if !ignoreblanks {
+		        	fmt.Printf("%s : No title\n", url)
+	        	}
 	      	}
 
 	      }
