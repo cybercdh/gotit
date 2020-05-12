@@ -83,8 +83,10 @@ func main() {
 						color.Yellow.Printf("%s : %s\n", url, title)
 					} else if strings.Contains(title, "30") {
 						color.Cyan.Printf("%s : %s\n", url, title)
+					} else if strings.Contains(title, "404") {
+						color.Magenta.Printf("%s : %s\n", url, title)
 					} else {
-						fmt.Printf("%s : %s\n", url, title)
+						color.Green.Printf("%s : %s\n", url, title)
 					}
 				} else {
 					if !ignoreblanks {
