@@ -83,8 +83,8 @@ func main() {
 						color.Yellow.Printf("%s : %s\n", url, title)
 					} else if strings.Contains(title, "30") {
 						color.Cyan.Printf("%s : %s\n", url, title)
-					} else if strings.Contains(title, "404") {
-						color.Magenta.Printf("%s : %s\n", url, title)
+					} else if strings.Contains(title, "404") || CaseInsensitiveContains(title, "error") {
+						fmt.Printf("%s : %s\n", url, title)
 					} else {
 						color.Green.Printf("%s : %s\n", url, title)
 					}
@@ -123,4 +123,9 @@ func main() {
 	close(urls)
 	wg.Wait()
 
+}
+
+func CaseInsensitiveContains(s, substr string) bool {
+	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
+	return strings.Contains(s, substr)
 }
